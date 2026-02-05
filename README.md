@@ -141,7 +141,7 @@ pip install -e '.[inference]'
 ./patching/hydra # https://github.com/facebookresearch/hydra/pull/2863
 ```
 
-If you encounter difficulties during installation, please refer to the more detailed [setup]() documentation.
+If you encounter difficulties during installation, please refer to the more detailed [setup](https://github.com/mingqiangWu/Fast-SAM3D/blob/main/doc/Setup.md) documentation.
 
 ### Getting Checkpoints
 
@@ -168,8 +168,6 @@ hf download \
 mv checkpoints/${TAG}-download/checkpoints checkpoints/${TAG}
 rm -rf checkpoints/${TAG}-download
 ```
-
-
 
 
 
@@ -233,8 +231,6 @@ python infer_scene.py \
 │   ├── image.png
 │   ├── 0.png
 │   └── 1.png
-
-
 ```
 
 ---
