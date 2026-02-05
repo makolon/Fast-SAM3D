@@ -141,7 +141,7 @@ pip install -e '.[inference]'
 ./patching/hydra # https://github.com/facebookresearch/hydra/pull/2863
 ```
 
-If you encounter difficulties during installation, please refer to the more detailed [setup]() documentation.
+If you encounter difficulties during installation, please refer to the more detailed [/doc/Setup.md](https://github.com/wlfeng0509/Fast-SAM3D/blob/main/doc/Setup.md) documentation.
 
 ### Getting Checkpoints
 
@@ -171,8 +171,6 @@ rm -rf checkpoints/${TAG}-download
 
 
 
-
-
 ---
 
 ## 🚀 Usage
@@ -181,6 +179,7 @@ rm -rf checkpoints/${TAG}-download
 
 ```bash
 # Generate 3D from single image + mask
+cd notebook
 python infer.py \
     --image_path examples/input.jpg \
     --mask_index 1 \
@@ -192,6 +191,7 @@ python infer.py \
 
 ```bash
 # Full Fast-SAM3D acceleration (default)
+cd notebook
 python infer.py \
     --image_path examples/image.png \
     --mask_index 1\
@@ -200,6 +200,7 @@ python infer.py \
     --enable_mesh_aggregation
 
 # Customize acceleration strength
+cd notebook
 python infer.py \
     --image_path examples/image.png \
     --mask_index 1 \
@@ -219,6 +220,7 @@ python infer.py \
 ### Scene Generation
 
 ```bash
+cd notebook
 python infer_scene.py \
     --image_dir examples \
     --output_dir outputs/ \
@@ -233,8 +235,6 @@ python infer_scene.py \
 │   ├── image.png
 │   ├── 0.png
 │   └── 1.png
-
-
 ```
 
 ---
