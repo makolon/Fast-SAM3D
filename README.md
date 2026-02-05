@@ -21,10 +21,10 @@ Weilun Feng <sup>*</sup> ,Mingqiang Wu<sup>*</sup>, Zhiliang Chen, Chuanguang Y
 
 <sup>*</sup>Equal Contribution  <sup>✉</sup>Corresponding Author
 
-Institute of Computing Technology, Chinese Academy of Sciences
-University of Chinese Academy of Sciences
-China University of Mining and Technology
-ETH Zürich
+,Institute of Computing Technology, Chinese Academy of Sciences,
+University of Chinese Academy of Sciences,
+China University of Mining and Technology,
+ETH Zürich,
 Shanghai Jiao Tong University
 
 </div>
@@ -119,44 +119,71 @@ The Mesh Decoder processes dense token sequences. We introduce:
 - CUDA >= 11.8
 - SAM3D dependencies
 
-### Setup Environment
+### Setup FastSAM3D Environment
 
-```bash
-# Clone the repository
-git clone https://github.com/wlfeng0509/Fast-SAM3D-3Dfy-Anything-in-Images-but-Faster.git
-cd Fast-SAM3D-3Dfy-Anything-in-Images-but-Faster
+```
+# create fastsam3d environment
+mamba env create -f environments/default.yml
+mamba activate fastsam3d
 
-# Create conda environment
-conda create -n fastsam3d python=3.10
-conda activate fastsam3d
+# for pytorch/cuda dependencies
+export PIP_EXTRA_INDEX_URL="https://pypi.ngc.nvidia.com https://download.pytorch.org/whl/cu121"
 
-# Install dependencies
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-pip install -r requirements.txt
+# install fastsam3d and core dependencies
+pip install -e '.[dev]'
+pip install -e '.[p3d]' # pytorch3d dependency on pytorch is broken, this 2-step approach solves it
+
+# for inference
+export PIP_FIND_LINKS="https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.5.1_cu121.html"
+pip install -e '.[inference]'
+
+# patch things that aren't yet in official pip packages
+./patching/hydra # https://github.com/facebookresearch/hydra/pull/2863
 ```
 
-### Download Pretrained Models
+If you encounter difficulties during installation, please refer to the more detailed [setup]() documentation.
+
+### Getting Checkpoints
+
+**From HuggingFace**
+
+⚠️ Before using FastSAM 3D , please request access to the checkpoints on the SAM 3D Objects
+Hugging Face [repo](https://huggingface.co/facebook/sam-3d-objects). Once accepted, you
+need to be authenticated to download the checkpoints. You can do this by running
+the following [steps](https://huggingface.co/docs/huggingface_hub/en/quick-start#authentication)
+(e.g. `hf auth login` after generating an access token).
+
+⚠️ SAM 3D Objects is available via HuggingFace globally, **except** in comprehensively sanctioned jurisdictions.
+Sanctioned jurisdiction will result in requests being **rejected**.
 
 ```bash
-# Download SAM3D checkpoint
-mkdir -p checkpoints
-# Place your SAM3D checkpoint in ./checkpoints/
+pip install 'huggingface-hub[cli]<1.0'
 
-# Or use HuggingFace
-huggingface-cli download your-username/fast-sam3d --local-dir ./checkpoints
+TAG=hf
+hf download \
+  --repo-type model \
+  --local-dir checkpoints/${TAG}-download \
+  --max-workers 1 \
+  facebook/sam-3d-objects
+mv checkpoints/${TAG}-download/checkpoints checkpoints/${TAG}
+rm -rf checkpoints/${TAG}-download
 ```
+
+
+
+
 
 ---
 
 ## 🚀 Usage
 
-### Quick Start
+### Quick Start/Object Generation
 
 ```bash
 # Generate 3D from single image + mask
 python infer.py \
     --image_path examples/input.jpg \
-    --mask_path examples/mask.png \
+    --mask_index 1 \
     --output_dir outputs/ \
     --enable_acceleration
 ```
@@ -166,33 +193,53 @@ python infer.py \
 ```bash
 # Full Fast-SAM3D acceleration (default)
 python infer.py \
-    --image_path examples/input.jpg \
-    --mask_path examples/mask.png \
+    --image_path examples/image.png \
+    --mask_index 1\
     --enable_ss_cache \
     --enable_slat_carving \
     --enable_mesh_aggregation
 
 # Customize acceleration strength
 python infer.py \
-    --image_path examples/input.jpg \
-    --mask_path examples/mask.png \
-    --cache_stride 3 \
-    --momentum_beta 0.5 \
-    --carving_ratio 0.1 \
-    --spectral_threshold_low 0.5 \
-    --spectral_threshold_high 0.7
-```
-
-### Batch Scene Generation
-
-```bash
-python infer_scene.py \
-    --image_path examples/scene.jpg \
-    --output_dir outputs/ \
+    --image_path examples/image.png \
+    --mask_index 1 \
+    --output_dir /data3/wmq/Fast-sam3d-objects/Look \
+    --ss_cache_stride 3 \
+    --ss_warmup 2 \
+    --ss_order 1 \
+    --ss_momentum_beta 0.5 \
+    --slat_thresh 1.5 \
+    --slat_warmup 3 \
+    --slat_carving_ratio 0.1 \
+    --mesh_spectral_threshold_low 0.5 \
+    --mesh_spectral_threshold_high 0.7 \
     --enable_acceleration
 ```
 
+### Scene Generation
+
+```bash
+python infer_scene.py \
+    --image_dir examples \
+    --output_dir outputs/ \
+    --enable_acceleration
+
+```
+
+### Image Directory
+
+```
+├── example/
+│   ├── image.png
+│   ├── 0.png
+│   └── 1.png
+
+
+```
+
 ---
+
+
 
 ## 📊 Results
 
@@ -257,8 +304,14 @@ This project is released under the [MIT License](LICENSE).
 
 For questions or suggestions, please open an issue or contact:
 - Weilun Feng: [fengweilun24s@ict.ac.cn](fengweilun24s@ict.ac.cn)
+
+- Mingqiang Wu wumingqiang25e@ict.ac.cn
+
 - Chuanguang Yang: [yangchuanguang@ict.ac.cn](mailto:yangchuanguang@ict.ac.cn)
+
 - Zhulin An: [anzhulin@ict.ac.cn](mailto:anzhulin@ict.ac.cn)
+
+  
 
 ---
 
