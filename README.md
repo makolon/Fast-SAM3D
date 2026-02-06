@@ -18,7 +18,7 @@ Weilun Feng <sup>*</sup> ,Mingqiang Wu<sup>*</sup>, Zhiliang Chen, Chuanguang Y
 
 <sup>*</sup>Equal Contribution  <sup>✉</sup>Corresponding Author
 
-,Institute of Computing Technology, Chinese Academy of Sciences,
+Institute of Computing Technology, Chinese Academy of Sciences,
 University of Chinese Academy of Sciences,
 China University of Mining and Technology,
 ETH Zürich,
@@ -59,7 +59,7 @@ Shanghai Jiao Tong University
 
 ## 📰 News
 
-- **[2026.02.05]** 🎉 Paper and code released! Check out our [paper](https://arxiv.org/abs/xxxx.xxxxx).
+- **[2026.02.05]** 🎉 Paper and code released! Check out our [paper](https://arxiv.org/abs/2602.05293).
 
 ---
 
