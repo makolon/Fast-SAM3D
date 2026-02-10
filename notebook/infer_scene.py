@@ -1,11 +1,13 @@
-import sys
 import os
+import sys
 import time
 import shutil
-import torch
-import numpy as np
+from pathlib import Path
+
 import argparse
 import imageio
+import numpy as np
+import torch
 from omegaconf import OmegaConf
 
 
@@ -13,8 +15,12 @@ from inference import Inference, ready_gaussian_for_video_rendering, load_image,
 from fft.fft2d import calculate_hfer_robust
 
 
-sys.path.append("notebook")
-os.environ['TORCH_HOME'] = '/data3/wmq/Fast-sam3d-objects/checkpoints/torch-cache'
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+NOTEBOOK_DIR = PROJECT_ROOT / "notebook"
+if str(NOTEBOOK_DIR) not in sys.path:
+    sys.path.append(str(NOTEBOOK_DIR))
+
+os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "checkpoints" / "torch-cache"))
 
 def save_visual_ply(gs_model, path):
     from plyfile import PlyData, PlyElement
@@ -90,9 +96,9 @@ def main():
     print(f"✅ 加速状态: SS:{enable_params['enable_ss_cache']}, SLaT:{enable_params['enable_slat_carving']}, Mesh:{enable_params['enable_mesh_aggregation']}")
 
     # --- 配置加载与修改 ---
-    config_path = f"../checkpoints/{args.tag}/pipeline.yaml"
-    config = OmegaConf.load(config_path) 
-    config.workspace_dir = os.path.dirname(config_path)
+    config_path = PROJECT_ROOT / "checkpoints" / args.tag / "pipeline.yaml"
+    config = OmegaConf.load(str(config_path))
+    config.workspace_dir = str(config_path.parent)
     
     # 根据开关动态修改 Config
     if enable_params['enable_ss_cache']:

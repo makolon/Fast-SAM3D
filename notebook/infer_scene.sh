@@ -1,6 +1,6 @@
-CUDA_VISIBLE_DEVICES=4 python /data3/wmq/Fast-sam3d-objects/notebook/infer_scene.py \
-    --image_dir /data3/wmq/Fast-sam3d-objects/notebook/images/m-sofa\
-    --output_dir /data3/wmq/Fast-sam3d-objects/Look-scene \
+CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0} python notebook/infer_scene.py \
+    --image_dir ${IMAGE_DIR:-notebook/examples_scene} \
+    --output_dir ${OUTPUT_DIR:-outputs/scene} \
     --ss_cache_stride 3 \
     --ss_warmup 2 \
     --ss_order 1 \
@@ -11,4 +11,3 @@ CUDA_VISIBLE_DEVICES=4 python /data3/wmq/Fast-sam3d-objects/notebook/infer_scene
     --mesh_spectral_threshold_low 0.5 \
     --mesh_spectral_threshold_high 0.7 \
     --enable_acceleration
-

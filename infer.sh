@@ -1,7 +1,7 @@
-CUDA_VISIBLE_DEVICES=4 python /data3/wmq/Fast-sam3d-objects/notebook/infer.py \
-    --image_path /data3/wmq/Fast-sam3d-objects/notebook/images/shutterstock_stylish_kidsroom_1640806567/image.png \
-    --mask_index 14 \
-    --output_dir /data3/wmq/Fast-sam3d-objects/Look \
+CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0} python notebook/infer.py \
+    --image_path ${IMAGE_PATH:-notebook/examples/input.jpg} \
+    --mask_index ${MASK_INDEX:-1} \
+    --output_dir ${OUTPUT_DIR:-outputs} \
     --ss_cache_stride 3 \
     --ss_warmup 2 \
     --ss_order 1 \
@@ -12,4 +12,3 @@ CUDA_VISIBLE_DEVICES=4 python /data3/wmq/Fast-sam3d-objects/notebook/infer.py \
     --mesh_spectral_threshold_low 0.5 \
     --mesh_spectral_threshold_high 0.7 \
     --enable_acceleration
-

@@ -1,0 +1,85 @@
+x-fastsam3d-build: &fastsam3d-build
+  context: .
+  dockerfile: Dockerfile
+  args:
+    POLARIS_PATH_ARG: ${POLARIS_PATH:-/workspace}
+    MAX_JOBS: ${MAX_JOBS:-4}
+    INSTALL_FLASH_ATTN: ${INSTALL_FLASH_ATTN:-0}
+
+x-fastsam3d-environment: &fastsam3d-environment
+  OMNI_KIT_ALLOW_ROOT: "1"
+  TERM: ${TERM:-xterm-256color}
+  XDG_RUNTIME_DIR: /tmp/runtime-root
+  NVIDIA_DRIVER_CAPABILITIES: compute,utility,graphics,display,video
+  NVIDIA_VISIBLE_DEVICES: all
+  POLARIS_PATH: ${POLARIS_PATH:-/workspace}
+  TORCH_HOME: /workspace/checkpoints/torch-cache
+  KIT_USE_EGL: "1"
+  DISPLAY: ""
+
+x-fastsam3d-service: &fastsam3d-service
+  build: *fastsam3d-build
+  image: fastsam3d:latest
+  gpus:
+    - count: all
+      capabilities: [gpu]
+  shm_size: "16gb"
+  ipc: host
+  network_mode: host
+  working_dir: /workspace
+  volumes:
+    - type: bind
+      source: ./
+      target: /workspace
+  stdin_open: true
+  tty: true
+  entrypoint: ["bash"]
+
+services:
+  fastsam3d:
+    <<: *fastsam3d-service
+    container_name: fastsam3d
+    environment:
+      <<: *fastsam3d-environment
+
+  fastsam3d_x11:
+    <<: *fastsam3d-service
+    container_name: fastsam3d_x11
+    environment:
+      <<: *fastsam3d-environment
+      DISPLAY: ${DISPLAY:-:0}
+      XAUTHORITY: /root/.Xauthority
+      QT_X11_NO_MITSHM: "1"
+      KIT_USE_EGL: "0"
+    volumes:
+      - type: bind
+        source: ./
+        target: /workspace
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
+      - type: bind
+        source: ${XAUTHORITY:-/tmp/.Xauthority}
+        target: /root/.Xauthority
+        read_only: true
+    profiles: ["x11"]
+
+  desktop:
+    image: ghcr.io/matsuolab/virtual_desktop:latest
+    container_name: fastsam3d_desktop
+    gpus:
+      - count: all
+        capabilities: [gpu]
+    environment:
+      <<: *fastsam3d-environment
+      DISPLAY: ${DISPLAY:-:20}
+      QT_X11_NO_MITSHM: "1"
+    ports:
+      - "${WEB_PORT:-6080}:6080"
+    volumes:
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    security_opt:
+      - seccomp:unconfined
+    shm_size: "2gb"
+    ipc: host
+    profiles: ["desktop"]

@@ -142,6 +142,38 @@ pip install -e '.[inference]'
 
 If you encounter some difficulties during installation, please refer to the more detailed [/doc/Setup.md](https://github.com/wlfeng0509/Fast-SAM3D/blob/main/doc/Setup.md) documentation.
 
+### Docker (CUDA 12.8, Optional)
+
+This repository includes a ready-to-use `Dockerfile` and `docker-compose.yml` adapted for Fast-SAM3D.
+
+```bash
+# Build
+docker compose build fastsam3d
+
+# Optional: install flash-attn during build (recommended for A100/H100/H200)
+INSTALL_FLASH_ATTN=1 docker compose build fastsam3d
+
+# Start a headless shell
+docker compose run --rm fastsam3d
+```
+
+Optional X11 mode:
+
+```bash
+xhost +local:root
+docker compose --profile x11 run --rm fastsam3d_x11
+```
+
+Inside the container, run inference from the repository root:
+
+```bash
+python notebook/infer.py \
+    --image_path notebook/examples/input.jpg \
+    --mask_index 1 \
+    --output_dir outputs/ \
+    --enable_acceleration
+```
+
 ### Getting Checkpoints
 
 **From HuggingFace**
@@ -167,6 +199,14 @@ hf download \
 mv checkpoints/${TAG}-download/checkpoints checkpoints/${TAG}
 rm -rf checkpoints/${TAG}-download
 ```
+
+Fast-SAM3D also requires the MoGe checkpoint at:
+
+```bash
+checkpoints/moge-vitl/model.pt
+```
+
+Please download `model.pt` from the official MoGe release and place it at that path.
 
 
 
@@ -203,7 +243,7 @@ cd notebook
 python infer.py \
     --image_path examples/image.png \
     --mask_index 1 \
-    --output_dir /data3/wmq/Fast-sam3d-objects/Look \
+    --output_dir outputs/ \
     --ss_cache_stride 3 \
     --ss_warmup 2 \
     --ss_order 1 \

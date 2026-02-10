@@ -1,4 +1,5 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
+import importlib.util
 import os
 import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -14,15 +15,33 @@ import time
 from fft.fft2d import calculate_slope_robust,calculate_hfer_robust, preprocess_for_fft_masked
 from fft.fft3d import get_coords_value,analyze_voxel_frequency, plot_spatial_heatmap, plot_freq_domain,process_and_visualize, plot_coords_scores_to_html
 
-def set_attention_backend():
-    if torch.cuda.is_available():
-        gpu_name = torch.cuda.get_device_name(0)
+def _is_module_available(module_name: str) -> bool:
+    return importlib.util.find_spec(module_name) is not None
 
+
+def set_attention_backend():
+    if os.environ.get("ATTN_BACKEND"):
+        logger.info(f"ATTN_BACKEND is preset to {os.environ['ATTN_BACKEND']}")
+        return
+
+    if not torch.cuda.is_available():
+        logger.warning("CUDA is not available. Falling back to sdpa attention backend.")
+        os.environ.setdefault("ATTN_BACKEND", "sdpa")
+        os.environ.setdefault("SPARSE_ATTN_BACKEND", "sdpa")
+        return
+
+    gpu_name = torch.cuda.get_device_name(0)
     logger.info(f"GPU name is {gpu_name}")
-    if "A100" in gpu_name or "H100" in gpu_name or "H200" in gpu_name:
-        # logger.info("Use flash_attn")
+    high_end_gpu = any(model in gpu_name for model in ("A100", "H100", "H200"))
+    if high_end_gpu and _is_module_available("flash_attn"):
         os.environ["ATTN_BACKEND"] = "flash_attn"
         os.environ["SPARSE_ATTN_BACKEND"] = "flash_attn"
+        logger.info("Using flash_attn backend")
+    else:
+        if high_end_gpu:
+            logger.warning("flash_attn is not installed. Falling back to sdpa backend.")
+        os.environ.setdefault("ATTN_BACKEND", "sdpa")
+        os.environ.setdefault("SPARSE_ATTN_BACKEND", "sdpa")
 
 set_attention_backend()
 

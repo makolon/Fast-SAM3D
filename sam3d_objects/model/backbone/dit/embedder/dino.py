@@ -1,4 +1,5 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
+import os
 import torch
 from typing import Optional, Dict, Any
 import warnings
@@ -11,10 +12,9 @@ class Dino(torch.nn.Module):
     def __init__(
         self,
         input_size: int = 224,
-        repo_or_dir: str = "/data3/wmq/Fast-sam3d-objects/checkpoints/torch-cache/hub/facebookresearch_dinov2_main",
-        # repo_or_dir: str = "facebookresearch/dinov2",
+        repo_or_dir: Optional[str] = None,
         dino_model: str = "dinov2_vitb14",
-        source: str = "local",
+        source: Optional[str] = None,
         backbone_kwargs: Optional[Dict[str, Any]] = None,
         normalize_images: bool = True,
         # for backward compatible
@@ -25,6 +25,30 @@ class Dino(torch.nn.Module):
         super().__init__()
         if backbone_kwargs is None:
             backbone_kwargs = {}
+
+        default_torch_home = os.environ.get(
+            "TORCH_HOME",
+            os.path.join(os.path.expanduser("~"), ".cache", "torch"),
+        )
+        default_local_repo = os.path.join(
+            default_torch_home, "hub", "facebookresearch_dinov2_main"
+        )
+        if repo_or_dir is None:
+            if os.path.isdir(default_local_repo):
+                repo_or_dir = default_local_repo
+                source = source or "local"
+            else:
+                repo_or_dir = "facebookresearch/dinov2"
+                source = source or "github"
+        elif source is None:
+            source = "local" if os.path.isdir(repo_or_dir) else "github"
+
+        if source == "local" and not os.path.isdir(repo_or_dir):
+            logger.warning(
+                f"DINO local repo not found at {repo_or_dir}. Falling back to github."
+            )
+            repo_or_dir = "facebookresearch/dinov2"
+            source = "github"
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")

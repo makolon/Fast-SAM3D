@@ -1,15 +1,23 @@
+import os
 import sys
-import torch
-import numpy as np
+import time
+import shutil
+from pathlib import Path
+
 import argparse
+import numpy as np
+import torch
+from omegaconf import OmegaConf
+
 from inference import Inference, load_image, load_single_mask
 from fft.fft2d import calculate_hfer_robust
-import os
-import time
-from omegaconf import OmegaConf, DictConfig, ListConfig
 
-sys.path.append("notebook")
-os.environ['TORCH_HOME'] = '/data3/wmq/Fast-sam3d-objects/checkpoints/torch-cache'
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+NOTEBOOK_DIR = PROJECT_ROOT / "notebook"
+if str(NOTEBOOK_DIR) not in sys.path:
+    sys.path.append(str(NOTEBOOK_DIR))
+
+os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "checkpoints" / "torch-cache"))
 
 def clear_directory(directory_path):
     try:
@@ -114,10 +122,10 @@ def main():
         return enable_params
 
 
-    config_path = f"checkpoints/{args.tag}/pipeline.yaml"
+    config_path = PROJECT_ROOT / "checkpoints" / args.tag / "pipeline.yaml"
     enable_params = get_enable_params(args)
-    config = OmegaConf.load(config_path) 
-    config.workspace_dir = os.path.dirname(config_path)
+    config = OmegaConf.load(str(config_path))
+    config.workspace_dir = str(config_path.parent)
     if enable_params['enable_ss_cache']:
         config['ss_generator_config_path'] =  "ss_generator_faster.yaml" 
     if enable_params['enable_slat_carving']:
@@ -160,4 +168,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
