@@ -150,9 +150,6 @@ This repository includes a ready-to-use `Dockerfile` and `docker-compose.yml` ad
 # Build
 docker compose build fastsam3d
 
-# Optional: install flash-attn during build (recommended for A100/H100/H200)
-INSTALL_FLASH_ATTN=1 docker compose build fastsam3d
-
 # Start a headless shell
 docker compose run --rm fastsam3d
 ```
@@ -164,7 +161,16 @@ xhost +local:root
 docker compose --profile x11 run --rm fastsam3d_x11
 ```
 
-Inside the container, run inference from the repository root:
+Inside the container, install Python dependencies with `uv` from `pyproject.toml`:
+
+```bash
+uv python install 3.11
+uv sync --python 3.11 --extra inference
+# Optional heavy extras:
+# uv sync --python 3.11 --extra inference --extra p3d
+```
+
+Then run inference from the repository root:
 
 ```bash
 python notebook/infer.py \
@@ -192,6 +198,19 @@ pip install 'huggingface-hub[cli]<1.0'
 
 TAG=hf
 hf download \
+  --repo-type model \
+  --local-dir checkpoints/${TAG}-download \
+  --max-workers 1 \
+  facebook/sam-3d-objects
+mv checkpoints/${TAG}-download/checkpoints checkpoints/${TAG}
+rm -rf checkpoints/${TAG}-download
+```
+
+Or run the CLI one-off with `uv` (without resolving this project's dependencies):
+
+```bash
+TAG=hf
+uv tool run --from 'huggingface-hub[cli]<1.0' hf download \
   --repo-type model \
   --local-dir checkpoints/${TAG}-download \
   --max-workers 1 \

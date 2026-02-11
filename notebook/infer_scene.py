@@ -22,6 +22,29 @@ if str(NOTEBOOK_DIR) not in sys.path:
 
 os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "checkpoints" / "torch-cache"))
 
+def resolve_config_path(tag: str) -> Path:
+    base_dir = PROJECT_ROOT / "checkpoints" / tag
+    candidates = [
+        base_dir / "checkpoints" / "pipeline.yaml",
+        base_dir / "pipeline.yaml",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(
+        f"Could not find pipeline.yaml for tag '{tag}'. Checked: "
+        + ", ".join(str(p) for p in candidates)
+    )
+
+def resolve_accel_config_name(workspace_dir: Path, filename: str) -> str:
+    local = workspace_dir / filename
+    if local.exists():
+        return filename
+    parent = workspace_dir.parent / filename
+    if parent.exists():
+        return f"../{filename}"
+    return filename
+
 def save_visual_ply(gs_model, path):
     from plyfile import PlyData, PlyElement
     folder_path = os.path.dirname(path)
@@ -96,15 +119,19 @@ def main():
     print(f"✅ 加速状态: SS:{enable_params['enable_ss_cache']}, SLaT:{enable_params['enable_slat_carving']}, Mesh:{enable_params['enable_mesh_aggregation']}")
 
     # --- 配置加载与修改 ---
-    config_path = PROJECT_ROOT / "checkpoints" / args.tag / "pipeline.yaml"
+    config_path = resolve_config_path(args.tag)
     config = OmegaConf.load(str(config_path))
     config.workspace_dir = str(config_path.parent)
     
     # 根据开关动态修改 Config
     if enable_params['enable_ss_cache']:
-        config['ss_generator_config_path'] = "ss_generator_faster.yaml" 
+        config['ss_generator_config_path'] = resolve_accel_config_name(
+            config_path.parent, "ss_generator_faster.yaml"
+        )
     if enable_params['enable_slat_carving']:
-        config['slat_generator_config_path'] = "slat_generator_faster.yaml" 
+        config['slat_generator_config_path'] = resolve_accel_config_name(
+            config_path.parent, "slat_generator_faster.yaml"
+        )
 
     # --- 初始化模型 ---
     inference = Inference(config, compile=False, args=args)

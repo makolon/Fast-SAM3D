@@ -92,13 +92,33 @@ BLACKLIST_FILTERS = [
 class Inference:
 
     def __init__(self, config: DictConfig,compile: bool = False, args =None):
-        
+        # MoGeModel.from_pretrained expects a repo id or a directory.
+        # Some checkpoint configs point to a specific file (e.g. model.pt), so normalize to parent dir.
+        moge_path = OmegaConf.select(config, "depth_model.model.pretrained_model_name_or_path")
+        if isinstance(moge_path, str) and moge_path.endswith((".pt", ".pth", ".bin", ".safetensors")):
+            config.depth_model.model.pretrained_model_name_or_path = os.path.dirname(moge_path)
+            moge_path = config.depth_model.model.pretrained_model_name_or_path
+
+        # Some MoGe package versions only accept Hugging Face repo ids here and reject local paths.
+        if isinstance(moge_path, str) and (os.path.isabs(moge_path) or moge_path.startswith(".")):
+            lower_path = moge_path.lower()
+            fallback_repo = "Ruicheng/moge-vitl"
+            if "moge-2-vitl-normal" in lower_path:
+                fallback_repo = "Ruicheng/moge-2-vitl-normal"
+            elif "moge-2-vitl" in lower_path:
+                fallback_repo = "Ruicheng/moge-2-vitl"
+            elif "moge-2-vitb-normal" in lower_path:
+                fallback_repo = "Ruicheng/moge-2-vitb-normal"
+            elif "moge-2-vits-normal" in lower_path:
+                fallback_repo = "Ruicheng/moge-2-vits-normal"
+            print(f"[MoGe] Local path '{moge_path}' is not supported by this MoGe build; falling back to '{fallback_repo}'.")
+            config.depth_model.model.pretrained_model_name_or_path = fallback_repo
+
         config.rendering_engine = "pytorch3d"  # overwrite to disable nvdiffrast
         config.compile_model = compile 
         check_hydra_safety(config, WHITELIST_FILTERS, BLACKLIST_FILTERS)
         self._pipeline: InferencePipelinePointMap = instantiate(config) 
 
-    
     def get_hfer(self,hfer):
         self.hfer_2d = hfer
         self._pipeline.hfer_2d = hfer
@@ -117,7 +137,6 @@ class Inference:
         self._pipeline.enable_mesh = enable_mesh
 
         print("✅✅✅✅", self._pipeline.ss_params )
-     
 
     def merge_mask_to_rgba(self, image, mask):
         mask = mask.astype(np.uint8) * 255
@@ -199,7 +218,6 @@ def render_video(
     yaw_start_deg=-90,
     **kwargs,
 ):
-
     yaws = (
         torch.linspace(0, 2 * torch.pi, num_frames) + math.radians(yaw_start_deg)
     ).tolist()
@@ -341,8 +359,6 @@ def make_scene(*outputs, in_place=False):
     return scene_gs
 
 
-
-
 def check_target(
     target: str,
     whitelist_filters: List[Callable],
@@ -407,7 +423,6 @@ def load_masks(folder_path, indices_list=None, extension=".png"):
         mask = load_mask(mask_path)
         masks.append(mask)
     return masks
-
 
 
 def load_hfers(folder_path, indices_list=None, extension=".png"):

@@ -6,7 +6,6 @@ from pathlib import Path
 
 import argparse
 import numpy as np
-import torch
 from omegaconf import OmegaConf
 
 from inference import Inference, load_image, load_single_mask
@@ -18,6 +17,32 @@ if str(NOTEBOOK_DIR) not in sys.path:
     sys.path.append(str(NOTEBOOK_DIR))
 
 os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "checkpoints" / "torch-cache"))
+
+
+def resolve_config_path(tag: str) -> Path:
+    base_dir = PROJECT_ROOT / "checkpoints" / tag
+    candidates = [
+        base_dir / "checkpoints" / "pipeline.yaml",
+        base_dir / "pipeline.yaml",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(
+        f"Could not find pipeline.yaml for tag '{tag}'. Checked: "
+        + ", ".join(str(p) for p in candidates)
+    )
+
+
+def resolve_accel_config_name(workspace_dir: Path, filename: str) -> str:
+    local = workspace_dir / filename
+    if local.exists():
+        return filename
+    parent = workspace_dir.parent / filename
+    if parent.exists():
+        return f"../{filename}"
+    return filename
+
 
 def clear_directory(directory_path):
     try:
@@ -36,22 +61,7 @@ def clear_directory(directory_path):
         
     except Exception as e:
         return False
-
-def inspect_dict(output_dict):
-  
-    for key, value in output_dict.items():
-        if isinstance(value, torch.Tensor):
-            info = str(list(value.shape))
-            type_name = "torch.Tensor"
-        elif isinstance(value, np.ndarray):
-            info = str(value.shape)
-            type_name = "np.ndarray"
-        elif isinstance(value, list):
-            info = f"len={len(value)}"
-            type_name = "List"
-        else:
-            info = str(value)[:30] + "..." if len(str(value)) > 30 else str(value)
-            type_name = type(value).__name__          
+      
 
 def save_visual_ply(gs_model, path):
     from plyfile import PlyData, PlyElement
@@ -111,7 +121,6 @@ def main():
     parser.add_argument("--enable_acceleration", action="store_true", help="")
     args = parser.parse_args()
 
-    
     def get_enable_params(args):
         args_dict = vars(args) 
         enable_params = {k: v for k, v in args_dict.items() if k.startswith("enable_")}
@@ -121,19 +130,21 @@ def main():
             enable_params['enable_mesh_aggregation'] = True
         return enable_params
 
-
-    config_path = PROJECT_ROOT / "checkpoints" / args.tag / "pipeline.yaml"
+    config_path = resolve_config_path(args.tag)
     enable_params = get_enable_params(args)
     config = OmegaConf.load(str(config_path))
     config.workspace_dir = str(config_path.parent)
     if enable_params['enable_ss_cache']:
-        config['ss_generator_config_path'] =  "ss_generator_faster.yaml" 
+        config['ss_generator_config_path'] = resolve_accel_config_name(
+            config_path.parent, "ss_generator_faster.yaml"
+        )
     if enable_params['enable_slat_carving']:
-        config['slat_generator_config_path'] = "slat_generator_faster.yaml" 
+        config['slat_generator_config_path'] = resolve_accel_config_name(
+            config_path.parent, "slat_generator_faster.yaml"
+        )
 
     print(f"✅ ENABLE SS:{enable_params['enable_ss_cache']}, SLAT:{enable_params['enable_slat_carving']},Mesh:{enable_params['enable_mesh_aggregation']}")
     inference = Inference(config, compile=False, args=args)
-
 
     # load image and mask
     image = load_image(args.image_path)
@@ -158,13 +169,13 @@ def main():
     )
     print(f"⏱️ Done, total time: {time.time() - s_time:.2f}s")
 
-
     os.makedirs(args.output_dir, exist_ok=True)
     ply_path = os.path.join(args.output_dir, f"splat-faster-{args.mask_index}.ply")
     save_visual_ply(output["gs"], ply_path)
     glb_path = os.path.join(args.output_dir, f"splat-faster-{args.mask_index}.glb")
     output["glb"].export(glb_path)
     print(f"Saved to: \n - {ply_path} \n - {glb_path}")
+
 
 if __name__ == "__main__":
     main()
