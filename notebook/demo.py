@@ -100,21 +100,16 @@ def main():
 
     # 2. load image and mask
     image = load_image(args.image_path)
-    
-    # 如果 load_single_mask 需要目录和索引，可以从路径中拆分，或者直接通过 mask_path 加载
-    # 这里保持你原有的逻辑，但改用 args 传参
+
     folder_path = os.path.dirname(args.image_path)
     mask = load_single_mask(folder_path, index=args.index)
-    
-    # 3. 计算 HFER 并设置到模型
+
     hfer = calculate_hfer_robust(args.mask_path)
     inference.get_HFER(hfer)
 
-    # 4. 执行推理
-    print(f"开始推理: {args.image_path}")
+    print(f"{args.image_path}")
     s_time = time.time()
     
-    # 假设你的 inference 接受这些额外的超参数
     output = inference(
         image, 
         mask, 
@@ -124,9 +119,9 @@ def main():
         carving_ratio=args.carving_ratio
     )
     
-    print(f"推理完成，耗时: {time.time() - s_time:.2f}s")
+    print(f"{time.time() - s_time:.2f}s")
 
-    # 5. 保存结果
+    # 5. Save Results
     os.makedirs(args.output_dir, exist_ok=True)
     
     ply_path = os.path.join(args.output_dir, f"splat-easy-{args.index}.ply")
@@ -135,7 +130,7 @@ def main():
     glb_path = os.path.join(args.output_dir, f"splat-easy-{args.index}.glb")
     output["glb"].export(glb_path)
     
-    print(f"✅ 文件已保存至: \n - {ply_path} \n - {glb_path}")
+    print(f"✅: \n - {ply_path} \n - {glb_path}")
 
 if __name__ == "__main__":
     main()

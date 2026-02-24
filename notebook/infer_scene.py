@@ -1,18 +1,15 @@
 import os
 import sys
 import time
-import shutil
 from pathlib import Path
 
 import argparse
 import imageio
 import numpy as np
-import torch
 from omegaconf import OmegaConf
 
 
 from inference import Inference, ready_gaussian_for_video_rendering, load_image, load_masks, load_hfers, make_scene, render_video
-from fft.fft2d import calculate_hfer_robust
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -176,18 +173,18 @@ def main():
     scene_gs = make_scene(*outputs)
     scene_gs = ready_gaussian_for_video_rendering(scene_gs)
 
-    # --- 保存结果 ---
+    # --- Save Results ---
     os.makedirs(args.output_dir, exist_ok=True)
     
-    # 1. 保存 PLY
+    # 1. Save PLY
     ply_path = os.path.join(args.output_dir, f"{image_name}_scene.ply")
     save_visual_ply(scene_gs, ply_path)
 
-    # 2. 渲染视频 (GIF & MP4)
+    # 2. (GIF & MP4)
     print("🎥 Rendering video...")
     video_frames = render_video(
         scene_gs,
-        r=2.5, # 视距，根据场景大小可能需要调整
+        r=2.5,
         fov=60,
         resolution=1024,
     )["color"]

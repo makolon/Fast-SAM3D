@@ -785,18 +785,12 @@ class InferencePipeline:
         
                 coords_raw = torch.argwhere(ss > 0)[:, [0, 2, 3, 4]].int()
                 coords_value = get_coords_value(ss) 
-                coords_scores ,hfer_3d = process_and_visualize(coords_value, output_dir="./可视化", filter_radius=8 , draw_spatial = False, draw_freq = False)
+                coords_scores ,hfer_3d = process_and_visualize(coords_value, output_dir="./visualization", filter_radius=8 , draw_spatial = False, draw_freq = False)
                 print(coords_scores.shape,hfer_3d)
 
                 # downsample output
                 return_dict["coords_original"] = coords_raw
                 original_shape = coords_raw.shape
-
-                # if self.downsample_ss_dist > 0:
-                #     coords = prune_sparse_structure(
-                #         coords_raw,
-                #         max_neighbor_axes_dist=self.downsample_ss_dist,
-                #     )
 
                 sample_type = "raw"
                 if self.enable_mesh:
@@ -813,9 +807,12 @@ class InferencePipeline:
                     fusion_mode='max') 
 
                 if sample_type == "double": 
-                    factor,score = calculate_adaptive_factor(hfer_2d, hfer_3d,
-                                                             high_thresh = self.mesh_params['mesh_spectral_threshold_high'],
-                                                             low_thresh =self.mesh_params['mesh_spectral_threshold_low'] )
+                    factor,score = calculate_adaptive_factor(
+                        hfer_2d,
+                        hfer_3d,
+                        high_thresh = self.mesh_params['mesh_spectral_threshold_high'],
+                        low_thresh =self.mesh_params['mesh_spectral_threshold_low']
+                    )
                     coords, coords_scores, downsample_factor = downsample_with_feature_fusion(
                     coords_raw, 
                     coords_scores, 
@@ -823,13 +820,11 @@ class InferencePipeline:
                     downsample_factor = factor,
                     fusion_mode='max') 
 
-
                 logger.info(
                     f"Downsampled coords from {original_shape[0]} to {coords.shape[0]}"
                 )
                 return_dict["coords"] = coords
                 return_dict["downsample_factor"] = downsample_factor 
-                
 
         ss_generator.inference_steps = prev_inference_steps
         logger.info("sample_sparse_structurer finish !")
@@ -851,7 +846,6 @@ class InferencePipeline:
         slat_generator = self.models["slat_generator"]
         slat_generator.map_tokens =  map_tokens
         slat_generator.coords_scores = coords_scores
-
 
         latent_shape = (image.shape[0],) + (coords.shape[0], 8) 
         prev_inference_steps = slat_generator.inference_steps
@@ -898,7 +892,6 @@ class InferencePipeline:
                     feats=slat[0],
                 ).to(DEVICE)
                 slat = slat * self.slat_std.to(DEVICE) + self.slat_mean.to(DEVICE)
-  
 
         slat_generator.inference_steps = prev_inference_steps
         return slat
