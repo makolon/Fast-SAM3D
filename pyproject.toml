@@ -29,7 +29,7 @@ dependencies = [
   "flake8==7.0.0",
   "Flask==3.0.3",
   "fqdn==1.5.1",
-  "ftfy==6.2.0",
+  "ftfy>=6.1.1",
   "fvcore==0.1.5.post20221221",
   "gdown==5.2.0",
   "h5py==3.12.1",
