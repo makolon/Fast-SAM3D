@@ -56,7 +56,7 @@ dependencies = [
   "orjson==3.10.0",
   "panda3d-gltf==1.2.1",
   "pdoc3==0.10.0",
-  "peft==0.10.0",
+  "peft>=0.10.0",
   "pip-system-certs==4.0",
   "polyscope==2.3.0",
   "pydot==1.4.2",
