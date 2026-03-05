@@ -51,7 +51,7 @@ dependencies = [
   "open3d==0.19.0",
   "opencv-python>=4.9.0.80",
   "OpenEXR==3.3.3",
-  "optimum==1.18.1",
+  "optimum>=1.18.1",
   "optree==0.14.1",
   "orjson==3.10.0",
   "panda3d-gltf==1.2.1",
