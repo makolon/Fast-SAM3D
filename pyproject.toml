@@ -115,8 +115,9 @@ dev = [
 
 [tool.hatch.build]
 ignore-vcs = true
-include = ["**/*.py"]
 exclude = ["conftest.py", "*_test.py"]
+
+[tool.hatch.build.targets.wheel]
 packages = ["sam3d_objects"]
 
 [tool.uv.extra-build-dependencies]

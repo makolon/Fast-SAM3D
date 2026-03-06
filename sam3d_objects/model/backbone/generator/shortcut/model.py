@@ -482,8 +482,8 @@ class ShortCut(FlowMatching):
         return xt
 
 
-from step_utils_ss import derivative_approximation, step_formula, step_cache_init
-from cache_utils_ss import cal_type,cache_init
+from sam3d_objects.step_utils_ss import derivative_approximation, step_formula, step_cache_init
+from sam3d_objects.cache_utils_ss import cal_type,cache_init
 class ShortCut_faster(ShortCut):
     def __init__(
         self,

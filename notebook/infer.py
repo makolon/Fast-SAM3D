@@ -9,7 +9,7 @@ import numpy as np
 from omegaconf import OmegaConf
 
 from inference import Inference, load_image, load_single_mask
-from fft.fft2d import calculate_hfer_robust
+from sam3d_objects.fft.fft2d import calculate_hfer_robust
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK_DIR = PROJECT_ROOT / "notebook"

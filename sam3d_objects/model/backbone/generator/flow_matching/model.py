@@ -372,9 +372,9 @@ class ConditionalFlowMatching(FlowMatching):
             yield t, x_t, ()
 
 
-from f3c_slat_end.f3c_leader import f3cLeader
-from f3c_slat_end.f3c_argparser import  parse_f3c_args
-from f3c_slat_end.selection import AdvancedStabilityTracker
+from sam3d_objects.f3c_slat_end.f3c_leader import f3cLeader
+from sam3d_objects.f3c_slat_end.f3c_argparser import  parse_f3c_args
+from sam3d_objects.f3c_slat_end.selection import AdvancedStabilityTracker
 from easydict import EasyDict as edict
 class FlowMatching_faster(FlowMatching):
 

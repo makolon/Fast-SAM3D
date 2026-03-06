@@ -12,8 +12,8 @@ from loguru import logger
 from functools import wraps
 from torch.utils._pytree import tree_map_only
 import time
-from fft.fft2d import calculate_slope_robust,calculate_hfer_robust, preprocess_for_fft_masked
-from fft.fft3d import get_coords_value,analyze_voxel_frequency, plot_spatial_heatmap, plot_freq_domain,process_and_visualize, plot_coords_scores_to_html
+from sam3d_objects.fft.fft2d import calculate_slope_robust,calculate_hfer_robust, preprocess_for_fft_masked
+from sam3d_objects.fft.fft3d import get_coords_value,analyze_voxel_frequency, plot_spatial_heatmap, plot_freq_domain,process_and_visualize, plot_coords_scores_to_html
 
 def _is_module_available(module_name: str) -> bool:
     return importlib.util.find_spec(module_name) is not None

@@ -7,7 +7,7 @@ from ..attention import SparseMultiHeadAttention, SerializeMode
 from ...norm import LayerNorm32
 from .blocks import SparseFeedForwardNet
 
-from step_utils_ss import derivative_approximation, step_formula, step_cache_init
+from sam3d_objects.step_utils_ss import derivative_approximation, step_formula, step_cache_init
 
 
 class ModulatedSparseTransformerBlock(nn.Module):

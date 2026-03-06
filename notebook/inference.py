@@ -40,7 +40,7 @@ from sam3d_objects.pipeline.inference_pipeline_pointmap import InferencePipeline
 from sam3d_objects.model.backbone.tdfy_dit.utils import render_utils
 from sam3d_objects.utils.visualization import SceneVisualizer
 
-from fft.fft2d import calculate_hfer_robust
+from sam3d_objects.fft.fft2d import calculate_hfer_robust
 
 
 __all__ = ["Inference"]
