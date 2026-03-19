@@ -134,7 +134,7 @@ class RungeKutta4(ODESolver):
         return x_tp1,velocity_k
 
 
-from cache_utils_slat_end import cal_type,cache_init
+from fastsam3d_objects.cache_utils_slat_end import cal_type, cache_init
 class Euler_end_slat(ODESolver):
     def __init__(self, thresh=0.0, dir_weight=0.5, ret_steps=1, full_steps=25,carving_ratio = 0.0):
        
