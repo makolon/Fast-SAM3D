@@ -35,10 +35,10 @@ from copy import deepcopy
 import builtins
 from pytorch3d.transforms import quaternion_multiply, quaternion_invert
 
-import sam3d_objects  # REMARK(Pierre) : do not remove this import
-from sam3d_objects.pipeline.inference_pipeline_pointmap import InferencePipelinePointMap
-from sam3d_objects.model.backbone.tdfy_dit.utils import render_utils
-from sam3d_objects.utils.visualization import SceneVisualizer
+import fastsam3d_objects  # REMARK(Pierre) : do not remove this import
+from fastsam3d_objects.pipeline.inference_pipeline_pointmap import InferencePipelinePointMap
+from fastsam3d_objects.model.backbone.tdfy_dit.utils import render_utils
+from fastsam3d_objects.utils.visualization import SceneVisualizer
 
 from fft.fft2d import calculate_hfer_robust
 
@@ -46,7 +46,12 @@ from fft.fft2d import calculate_hfer_robust
 __all__ = ["Inference"]
 
 WHITELIST_FILTERS = [
-    lambda target: target.split(".", 1)[0] in {"sam3d_objects", "torch", "torchvision", "moge"},
+    lambda target: target.split(".", 1)[0] in {
+        "fastsam3d_objects",
+        "torch",
+        "torchvision",
+        "moge",
+    },
 ]
 
 BLACKLIST_FILTERS = [
